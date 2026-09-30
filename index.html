@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeadLeak Calculator — What do missed calls cost your business?</title>
+<style>
+  :root{
+    --bg:#070b16; --bg2:#0b1226;
+    --card:rgba(255,255,255,.045); --card2:rgba(255,255,255,.07);
+    --border:rgba(255,255,255,.10);
+    --text:#eef2ff; --muted:#9aa3c0; --faint:#6b7490;
+    --accent1:#8b5cf6; --accent2:#06b6d4;
+    --grad:linear-gradient(135deg,var(--accent1),var(--accent2));
+    --red:#f87171; --green:#34d399; --amber:#fbbf24;
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Noto Sans",sans-serif;
+    background:
+      radial-gradient(900px 500px at 15% -5%, rgba(139,92,246,.22), transparent 60%),
+      radial-gradient(800px 500px at 90% 10%, rgba(6,182,212,.16), transparent 60%),
+      linear-gradient(var(--bg),var(--bg2));
+    min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 20px 40px}
+  header{text-align:center;margin-bottom:26px}
+  .logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:10px}
+  .logo .drop{
+    width:38px;height:38px;border-radius:12px;background:var(--grad);
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+    box-shadow:0 8px 24px rgba(139,92,246,.4);
+  }
+  .logo span{font-weight:800;font-size:20px;letter-spacing:.4px}
+  .logo small{font-weight:500;color:var(--muted);font-size:13px;display:block;letter-spacing:1.4px;text-transform:uppercase}
+  h1{font-size:clamp(26px,4.5vw,42px);margin:10px 0 8px;line-height:1.15}
+  h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:16px;max-width:620px;margin:0 auto;line-height:1.55}
+
+  .main-grid{display:grid;grid-template-columns:200px 1fr 1.1fr;gap:18px;margin-top:28px;align-items:start}
+
+  /* ---- vertical tabs ---- */
+  .tabs{display:flex;flex-direction:column;gap:10px}
+  .tab{
+    display:flex;align-items:center;gap:12px;text-align:left;
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    border-radius:14px;padding:14px 16px;cursor:pointer;font-size:15px;font-weight:600;
+    transition:transform .15s ease,border-color .15s ease,background .15s ease;
+    width:100%;font-family:inherit;
+  }
+  .tab .dot{width:10px;height:10px;border-radius:50%;background:var(--faint);flex:none;transition:background .15s}
+  .tab small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
+  .tab:hover{transform:translateX(3px);border-color:rgba(139,92,246,.5)}
+  .tab.active{background:linear-gradient(135deg,rgba(139,92,246,.22),rgba(6,182,212,.16));border-color:rgba(139,92,246,.65);box-shadow:0 6px 22px rgba(139,92,246,.22)}
+  .tab.active .dot{background:var(--accent2);box-shadow:0 0 10px var(--accent2)}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+  .panel h2{font-size:15px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin:0 0 18px}
+  .panel h2 .n{background:var(--grad);color:#fff;border-radius:8px;padding:2px 9px;font-size:13px;margin-right:8px}
+
+  .field{margin-bottom:18px}
+  .field:last-child{margin-bottom:0}
+  .field label{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;font-size:14px;margin-bottom:10px}
+  .field label .hint{font-size:12px;color:var(--faint);font-weight:400}
+  .row{display:flex;gap:12px;align-items:center}
+  input[type=range]{flex:1;accent-color:var(--accent2);cursor:pointer;height:28px}
+  input[type=number]{
+    width:110px;flex:none;background:rgba(0,0,0,.35);border:1px solid var(--border);
+    color:var(--text);border-radius:10px;padding:9px 10px;font-size:15px;font-weight:600;font-family:inherit;
+  }
+  input[type=number]:focus{outline:none;border-color:var(--accent1)}
+  .rupee{position:relative;flex:none;width:170px}
+  .rupee span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700}
+  .rupee input{width:100%;padding-left:30px}
+  .preset-note{margin-top:16px;font-size:12.5px;color:var(--faint);line-height:1.5;background:rgba(0,0,0,.25);border:1px dashed var(--border);border-radius:10px;padding:10px 12px}
+
+  /* ---- results ---- */
+  .headline-label{font-size:13px;text-transform:uppercase;letter-spacing:1.6px;color:var(--muted)}
+  .headline{
+    font-size:clamp(38px,5vw,58px);font-weight:800;margin:6px 0 2px;line-height:1.05;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+    font-variant-numeric:tabular-nums;min-height:1.1em;
+  }
+  .headline-words{color:var(--muted);font-size:15px;margin-bottom:6px}
+  .year-line{font-size:15px;color:var(--text);margin:10px 0 0}
+  .year-line b{color:var(--amber)}
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+  .vs-card{border-radius:14px;padding:16px;border:1px solid var(--border)}
+  .vs-card.now{background:rgba(248,113,113,.07);border-color:rgba(248,113,113,.30)}
+  .vs-card.after{background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.30)}
+  .vs-card .t{font-size:12.5px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700}
+  .vs-card.now .t{color:var(--red)} .vs-card.after .t{color:var(--green)}
+  .vs-card .v{font-size:clamp(20px,2.4vw,27px);font-weight:800;font-variant-numeric:tabular-nums}
+  .vs-card .s{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+  .bar-wrap{margin-top:18px}
+  .bar-labels{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .bar{height:14px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;display:flex}
+  .bar .rec{background:linear-gradient(90deg,var(--accent1),var(--accent2));transition:width .6s ease}
+  .bar .leak{background:rgba(248,113,113,.55);transition:width .6s ease}
+  .rec-line{margin-top:14px;font-size:15px;line-height:1.55;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.28);border-radius:12px;padding:12px 14px}
+  .rec-line b{color:var(--green);font-size:18px}
+  .fine{margin-top:14px;font-size:12px;color:var(--faint);line-height:1.5}
+
+  /* ---- share card ---- */
+  .share-section{margin-top:18px}
+  .share-card{
+    position:relative;border-radius:var(--radius);padding:2px;
+    background:linear-gradient(135deg,var(--accent1),var(--accent2),var(--accent1));
+  }
+  .share-inner{background:#0d1430;border-radius:calc(var(--radius) - 2px);padding:26px;text-align:center}
+  .share-inner .kicker{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);font-weight:700}
+  .share-inner h3{margin:8px 0 4px;font-size:22px}
+  .share-nums{display:flex;gap:14px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+  .share-num{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:12px 18px;min-width:150px}
+  .share-num .l{font-size:11.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .share-num .n{font-size:22px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+  .share-num.good .n{color:var(--green)} .share-num.bad .n{color:var(--red)}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;font-family:inherit;
+    background:var(--grad);color:#fff;font-weight:700;font-size:15px;
+    padding:13px 26px;border-radius:12px;transition:transform .15s ease, box-shadow .15s ease;
+    box-shadow:0 8px 24px rgba(139,92,246,.35);
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(139,92,246,.5)}
+  .btn:active{transform:translateY(0)}
+  .wa-note{margin-top:12px;font-size:13px;color:var(--muted)}
+
+  footer{margin-top:30px;text-align:center;color:var(--faint);font-size:13px;line-height:1.6}
+  footer .brand{color:var(--muted);font-weight:600}
+
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(80px);
+    background:#101a3a;border:1px solid rgba(52,211,153,.5);color:var(--text);
+    padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;
+    opacity:0;transition:all .3s ease;pointer-events:none;z-index:50;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:980px){
+    .main-grid{grid-template-columns:1fr}
+    .tabs{flex-direction:row}
+    .tab{flex:1;flex-direction:column;align-items:flex-start;gap:6px;padding:12px}
+    .tab small{display:none}
+    .share-nums{gap:10px}
+  }
+  @media (max-width:520px){
+    .vs{grid-template-columns:1fr}
+    .rupee{width:140px}
+    input[type=number]{width:88px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">
+      <div class="drop">&#128226;</div>
+      <div style="text-align:left"><span>LeadLeak</span><small>Calculator</small></div>
+    </div>
+    <h1>How much money is your business<br><span class="grad">leaking on missed calls?</span></h1>
+    <p class="sub">A 60-second estimate for Indian clinics, hotels &amp; real estate. Plug in 4 numbers, see what every unanswered ring really costs &mdash; and what a 24/7 AI agent could recover.</p>
+  </header>
+
+  <div class="main-grid">
+    <!-- vertical tabs -->
+    <nav class="tabs" role="tablist" aria-label="Business type">
+      <button class="tab active" data-tab="clinic" role="tab" aria-selected="true">
+        <span class="dot"></span><span>Clinic<small>Doctors, dentists, physios</small></span>
+      </button>
+      <button class="tab" data-tab="hotel" role="tab" aria-selected="false">
+        <span class="dot"></span><span>Hotel<small>Rooms, banquets, resorts</small></span>
+      </button>
+      <button class="tab" data-tab="realestate" role="tab" aria-selected="false">
+        <span class="dot"></span><span>Real Estate<small>Builders, brokers, agents</small></span>
+      </button>
+    </nav>
+
+    <!-- inputs -->
+    <section class="panel" aria-label="Your numbers">
+      <h2><span class="n">1</span>Your numbers</h2>
+
+      <div class="field">
+        <label>Missed calls per day <span class="hint">unanswered / lost rings</span></label>
+        <div class="row">
+          <input type="range" id="missed" min="0" max="30" step="1" value="5" aria-label="Missed calls per day">
+          <input type="number" id="missedNum" min="0" max="200" value="5" aria-label="Missed calls per day (number)">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Average deal value <span class="hint">revenue per converted customer</span></label>
+        <div class="row">
+          <div class="rupee">
+            <span>&#8377;</span>
+            <input type="number" id="deal" min="0" max="100000000" step="100" value="1500" aria-label="Average deal value in rupees">
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Close rate <span class="hint">% of callers who become paying customers</span></label>
+        <div class="row">
+          <input type="range" id="rate" min="0" max="100" step="1" value="40" aria-label="Close rate percent">
+          <input type="number" id="rateNum" min="0" max="100" value="40" aria-label="Close rate percent (number)">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Working days / month <span class="hint">days you take business calls</span></label>
+        <div class="row">
+          <input type="range" id="days" min="1" max="31" step="1" value="26" aria-label="Working days per month">
+          <input type="number" id="daysNum" min="1" max="31" value="26" aria-label="Working days per month (number)">
+        </div>
+      </div>
+
+      <div class="preset-note" id="presetNote">Preset: typical clinic &mdash; 5 missed calls/day at &#8377;1,500 average ticket and 40% close rate.</div>
+    </section>
+
+    <!-- results -->
+    <section class="panel" aria-label="Your leak">
+      <h2><span class="n">2</span>Your leak</h2>
+      <div class="headline-label">Currently leaking per month</div>
+      <div class="headline" id="headline">&#8377;0</div>
+      <div class="headline-words" id="headlineWords"></div>
+      <p class="year-line">That&rsquo;s <b id="yearly">&#8377;0</b> every year &mdash; walking out the door.</p>
+
+      <div class="vs">
+        <div class="vs-card now">
+          <div class="t">Today: no AI agent</div>
+          <div class="v" id="leakNow">&#8377;0</div>
+          <div class="s">Lost every month to unanswered calls.</div>
+        </div>
+        <div class="vs-card after">
+          <div class="t">With 24/7 AI answering</div>
+          <div class="v" id="leakAfter">&#8377;0</div>
+          <div class="s">Still leaks &mdash; no system catches everything.</div>
+        </div>
+      </div>
+
+      <div class="bar-wrap">
+        <div class="bar-labels"><span>Recovered by AI</span><span>Still leaking</span></div>
+        <div class="bar"><div class="rec" id="barRec" style="width:80%"></div><div class="leak" id="barLeak" style="width:20%"></div></div>
+      </div>
+
+      <div class="rec-line">&#128640; Recoverable revenue: <b id="recovered">&#8377;0</b>/month<br>
+        <span style="font-size:12.5px;color:var(--muted)">Assumes the AI agent captures 80% of missed calls. Your actual capture rate will vary.</span>
+      </div>
+
+      <div class="fine">Formula: missed calls/day &times; avg deal value &times; close rate &times; working days. Estimates only &mdash; they depend on the numbers you enter, not on any real data about your business.</div>
+    </section>
+  </div>
+
+  <!-- shareable card -->
+  <div class="share-section">
+    <div class="share-card">
+      <div class="share-inner" id="shareCard">
+        <div class="kicker">My LeadLeak Report</div>
+        <h3 id="shareBiz">My clinic</h3>
+        <div class="share-nums">
+          <div class="share-num bad"><div class="l">Lost / month</div><div class="n" id="shareMonthly">&#8377;0</div></div>
+          <div class="share-num bad"><div class="l">Lost / year</div><div class="n" id="shareYearly">&#8377;0</div></div>
+          <div class="share-num good"><div class="l">Recoverable with AI</div><div class="n" id="shareRecovered">&#8377;0</div></div>
+        </div>
+        <button class="btn" id="copyBtn">&#128203; Copy summary</button>
+        <div class="wa-note">&#128241; Tip: take a screenshot of this card and share it on WhatsApp.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Estimate based on your inputs &middot; Demo prototype by <span class="brand">VisionQuantech</span><br>
+    All calculations happen in your browser &mdash; no data leaves this page.
+  </footer>
+</div>
+
+<div class="toast" id="toast">Copied to clipboard &#10003;</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var PRESETS = {
+    clinic: {
+      name: "clinic", label: "My clinic",
+      missed: 5, deal: 1500, rate: 40, days: 26,
+      note: "Preset: typical clinic \u2014 5 missed calls/day at \u20B91,500 average ticket and 40% close rate."
+    },
+    hotel: {
+      name: "hotel", label: "My hotel",
+      missed: 8, deal: 4500, rate: 25, days: 30,
+      note: "Preset: typical hotel \u2014 8 missed calls/day at \u20B94,500 average booking and 25% close rate."
+    },
+    realestate: {
+      name: "real estate business", label: "My real estate business",
+      missed: 4, deal: 2000000, rate: 10, days: 26,
+      note: "Preset: typical realty office \u2014 4 missed calls/day at \u20B920,00,000 avg. revenue per closed deal and 10% close rate."
+    }
+  };
+  var AI_CAPTURE = 0.80;
+
+  var els = {
+    missed: document.getElementById("missed"),
+    missedNum: document.getElementById("missedNum"),
+    deal: document.getElementById("deal"),
+    rate: document.getElementById("rate"),
+    rateNum: document.getElementById("rateNum"),
+    days: document.getElementById("days"),
+    daysNum: document.getElementById("daysNum"),
+    headline: document.getElementById("headline"),
+    headlineWords: document.getElementById("headlineWords"),
+    yearly: document.getElementById("yearly"),
+    leakNow: document.getElementById("leakNow"),
+    leakAfter: document.getElementById("leakAfter"),
+    recovered: document.getElementById("recovered"),
+    barRec: document.getElementById("barRec"),
+    barLeak: document.getElementById("barLeak"),
+    presetNote: document.getElementById("presetNote"),
+    shareBiz: document.getElementById("shareBiz"),
+    shareMonthly: document.getElementById("shareMonthly"),
+    shareYearly: document.getElementById("shareYearly"),
+    shareRecovered: document.getElementById("shareRecovered"),
+    copyBtn: document.getElementById("copyBtn"),
+    toast: document.getElementById("toast")
+  };
+
+  var currentTab = "clinic";
+  var displayed = 0;
+  var raf = null;
+  var lastCalc = { monthly: 0, yearly: 0, recovered: 0 };
+
+  function clampNum(v, min, max, fallback){
+    v = parseFloat(v);
+    if (isNaN(v)) return fallback;
+    return Math.min(max, Math.max(min, v));
+  }
+
+  function fmt(v){
+    return "\u20B9" + Math.round(v).toLocaleString("en-IN");
+  }
+
+  function words(v){
+    v = Math.round(v);
+    if (v >= 10000000){
+      var cr = v / 10000000;
+      return "\u20B9" + (cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(2)) + " crore";
+    }
+    if (v >= 100000){
+      var l = v / 100000;
+      return "\u20B9" + (l % 1 === 0 ? l.toFixed(0) : l.toFixed(2)) + " lakh";
+    }
+    if (v >= 1000){
+      var k = v / 1000;
+      return "\u20B9" + (k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)) + " thousand";
+    }
+    return fmt(v);
+  }
+
+  function animateHeadline(target){
+    if (raf) cancelAnimationFrame(raf);
+    var start = displayed, t0 = performance.now(), dur = 650;
+    function tick(t){
+      var p = Math.min(1, (t - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      var v = start + (target - start) * e;
+      displayed = v;
+      els.headline.textContent = fmt(v);
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else { displayed = target; raf = null; }
+    }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function recalc(animate){
+    var missed = clampNum(els.missed.value, 0, 200, 0);
+    var deal = clampNum(els.deal.value, 0, 100000000, 0);
+    var rate = clampNum(els.rate.value, 0, 100, 0);
+    var days = clampNum(els.days.value, 1, 31, 26);
+
+    var monthly = missed * deal * (rate / 100) * days;
+    var yearly = monthly * 12;
+    var recovered = monthly * AI_CAPTURE;
+    var stillLeak = monthly * (1 - AI_CAPTURE);
+    lastCalc = { monthly: monthly, yearly: yearly, recovered: recovered };
+
+    if (animate === false) { displayed = monthly; els.headline.textContent = fmt(monthly); }
+    else animateHeadline(monthly);
+
+    els.headlineWords.textContent = monthly >= 100000 ? "i.e. " + words(monthly) + " / month" : "";
+    els.yearly.textContent = fmt(yearly);
+    els.leakNow.textContent = fmt(monthly);
+    els.leakAfter.textContent = fmt(stillLeak);
+    els.recovered.textContent = fmt(recovered);
+    els.barRec.style.width = (AI_CAPTURE * 100) + "%";
+    els.barLeak.style.width = ((1 - AI_CAPTURE) * 100) + "%";
+
+    els.shareMonthly.textContent = fmt(monthly);
+    els.shareYearly.textContent = fmt(yearly);
+    els.shareRecovered.textContent = fmt(recovered);
+  }
+
+  function bindPair(rangeEl, numEl){
+    rangeEl.addEventListener("input", function(){
+      numEl.value = rangeEl.value;
+      recalc(true);
+    });
+    numEl.addEventListener("input", function(){
+      var v = clampNum(numEl.value, parseFloat(rangeEl.min), parseFloat(rangeEl.max), parseFloat(rangeEl.value));
+      rangeEl.value = v;
+      recalc(true);
+    });
+  }
+  bindPair(els.missed, els.missedNum);
+  bindPair(els.rate, els.rateNum);
+  bindPair(els.days, els.daysNum);
+  els.deal.addEventListener("input", function(){ recalc(true); });
+
+  // tabs
+  var tabs = document.querySelectorAll(".tab");
+  tabs.forEach(function(tab){
+    tab.addEventListener("click", function(){
+      tabs.forEach(function(t){ t.classList.remove("active"); t.setAttribute("aria-selected", "false"); });
+      tab.classList.add("active");
+      tab.setAttribute("aria-selected", "true");
+      currentTab = tab.getAttribute("data-tab");
+      var p = PRESETS[currentTab];
+      els.missed.value = p.missed; els.missedNum.value = p.missed;
+      els.deal.value = p.deal;
+      els.rate.value = p.rate; els.rateNum.value = p.rate;
+      els.days.value = p.days; els.daysNum.value = p.days;
+      els.presetNote.innerHTML = p.note;
+      els.shareBiz.textContent = p.label;
+      recalc(true);
+    });
+  });
+
+  function showToast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    setTimeout(function(){ els.toast.classList.remove("show"); }, 2200);
+  }
+
+  els.copyBtn.addEventListener("click", function(){
+    var p = PRESETS[currentTab];
+    var text =
+      "My " + p.name + " loses " + fmt(lastCalc.monthly) + "/month (" + fmt(lastCalc.yearly) +
+      "/year) to missed calls. With a 24/7 AI answering agent capturing 80% of them, I could recover about " +
+      fmt(lastCalc.recovered) + "/month. Estimate based on my inputs \u2014 LeadLeak Calculator demo by VisionQuantech.";
+    function done(){ showToast("Copied to clipboard \u2713"); }
+    function fallback(){
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); done(); }
+      catch(e){ showToast("Copy failed \u2014 select the text manually"); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  // init
+  var init = PRESETS[currentTab];
+  els.presetNote.innerHTML = init.note;
+  els.shareBiz.textContent = init.label;
+  recalc(false);
+})();
+</script>
+</body>
+</html>
