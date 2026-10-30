@@ -42,3 +42,7 @@ No build step, no dependencies. Either:
 - `README.md` — this file
 
 *Demo prototype by VisionQuantech.*
+
+## Built by VisionQuantech
+
+Part of the [VisionQuantech](https://visionquantech.com/) AI automation studio. See [AI voice agents for business calls](https://visionquantech.com/ai-voice-agents) and the guide to [AI phone answering for veterinary clinics](https://visionquantech.com/blog/ai-phone-answering-service-for-veterinary-clinics).
